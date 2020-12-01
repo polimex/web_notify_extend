@@ -37,9 +37,10 @@ WebClient.include({
 				if (!self.call('bus_service', 'isMasterTab') || session.uid !== m[1].uid &&
 					action && controller && (controller.widget.modelName === m[1].model || controller.widget.isDashboard) &&
 					controller.widget.mode === "readonly") {
+						var recordID = action.env.currentID || null; // pyUtils handles null value, not undefined
 						if(controller.widget.isMultiRecord && (m[1].create || _.intersection(m[1].ids, action.env.ids) >= 1)) {
 							self._reload(m[1], controller);
-						} else if(!controller.widget.isMultiRecord && m[1].ids.includes(action.env.currentId)) {
+						} else if(!controller.widget.isMultiRecord && m[1].ids.includes(recordID)) {
 							self._reload(m[1], controller);
 						}
 				}
