@@ -29,7 +29,7 @@ WebClient.include({
     	var controller = this.action_manager.getCurrentController();
     	// console.log('Received event: ',messages)
 		_.each(messages, function (m) {
-			if (m.length > 1){
+			if ((m.length > 1)&&(controller)){
 				// console.log('Received event: ',m[1])
 				if((controller.widget)&&(controller.widget.modelName == 'board.board')){
 					self._reload(m[1], controller);
