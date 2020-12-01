@@ -31,7 +31,7 @@ WebClient.include({
 		_.each(messages, function (m) {
 			if (m.length > 1){
 				// console.log('Received event: ',m[1])
-				if(controller.widget.modelName == 'board.board'){
+				if((controller.widget)&&(controller.widget.modelName == 'board.board')){
 					self._reload(m[1], controller);
 				} else
 				if (!self.call('bus_service', 'isMasterTab') || session.uid !== m[1].uid &&
