@@ -33,7 +33,8 @@ class Base(models.AbstractModel):
             if not ids and self._log_access:
                 create = record.exists() and record.create_date == record.write_date or False
 
-            self.env['bus.bus'].sendone('ichecker_refresh', {
+            self.env['bus.bus'].sendone('polimex', {
+                'm_type': 'refresh',
                 'create': create,
                 'model': model or self._name,
                 'uid': user and user.id or False if ids else self.env.user.id,

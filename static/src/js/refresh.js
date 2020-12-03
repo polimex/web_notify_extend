@@ -1,5 +1,6 @@
 odoo.define('ichecker.WebClient', function (require) {
 "use strict";
+const MESSAGE_CHANNEL = 'polimex'
 
 var session = require('web.session');
 
@@ -18,17 +19,21 @@ WebClient.include({
 	start_polling: function() {
 		this.call("bus_service", "startPolling");
 		if (this.call("bus_service", "isMasterTab")) {
-			this.call("bus_service", "addChannel", 'ichecker_refresh');
+			this.call("bus_service", "addChannel", MESSAGE_CHANNEL);
 		}
-		this.call("bus_service", "on", "notification", this, this.ichecker_refresh);
+		this.call("bus_service", "on", "notification", this, this.polimex_msg);
 		// this.call("bus_service", "on", "ichecker_refresh", this, this.ichecker_refresh);
     },
-	ichecker_refresh: function(messages) {
+	polimex_msg: function(messages) {
 		var self = this;
     	var action = this.action_manager.getCurrentAction();
     	var controller = this.action_manager.getCurrentController();
-		_.each(messages, function (m) {
-			if ((m.length > 1)&&(action)&&(controller)&&(m[0] == 'ichecker_refresh')){
+		// console.log('Received messages: ',messages)
+		_.each(_.filter(messages, function (e) {
+			return e.length > 1;
+		}), function (m) {
+			// console.log('Proccessing message: ',m[1])
+			if ((action)&&(controller)&&(m[1].m_type == 'refresh')){
 				// console.log('Received event: ',m[1])
 				// console.log('Action: ',action)
 				// console.log('Controller: ',controller)
@@ -48,6 +53,9 @@ WebClient.include({
 				if((controller.widget)&&(controller.widget.modelName == 'board.board')){
 					self._reload(m[1], controller);
 				}
+			}
+			else if ((m[1].m_type == 'notify')&&(m[1].uids.includes(session.uid))){
+				self.displayNotification(m[1])
 			}
 		})
     },
