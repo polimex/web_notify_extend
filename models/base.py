@@ -1,5 +1,7 @@
 import logging
 
+from werkzeug.urls import url_encode
+
 from odoo import api, models, fields
 
 _logger = logging.getLogger(__name__)
@@ -7,7 +9,30 @@ _logger = logging.getLogger(__name__)
 
 class Base(models.AbstractModel):
     _inherit = 'base'
+
     # _log_access = True  # Include magic fields
+
+    @api.model
+    def internal_link(self):
+        self.ensure_one()
+        action = self.env['ir.actions.act_window'].search([
+            ('view_mode', '=', 'form'),
+            ('binding_model_id', '=', self._name)
+        ])
+        url = '/web#%s' % url_encode({
+            'action': action,
+            'active_id': self.id,
+            'active_model': self._name,
+            'form_type': 'form',
+            # 'menu_id': self.env.ref('hr.menu_hr_root').id,
+        })
+        return '<a href="{url}" class="o_redirect" t-att-data-oe-model="{model}" t-att-data-oe-id="{id}">#{name}</a>'.format(
+            url=url,
+            model=self._name,
+            id=self.id,
+            name=self.name
+        )
+
     def refresh_views(self, model=None, ids=None, user=None, create=False):
         """ Informs the web client to refresh the views that belong to the 
             corresponding model by sending a message to the bus.
