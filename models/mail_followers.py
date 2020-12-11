@@ -30,15 +30,17 @@ class Followers(models.Model):
     '''
 
     def notify_followers(self, title, subtitle='', message='', sticky=False, m_type='info'):
-        self.env['bus.bus'].sendone('polimex', {
-            'm_type': 'notify',
-            'title': title,
-            'subtitle': subtitle,
-            'message': message,
-            'sticky': sticky,
-            'type': m_type,
-            'uids': self.mapped('partner_id.user_ids.id'),
-        })
+        for f in self:
+            uids = f.mapped('partner_id.user_ids.id')
+            self.env['bus.bus'].sendone('polimex', {
+                'm_type': 'notify',
+                'title': title,
+                'subtitle': subtitle,
+                'message': message,
+                'sticky': sticky,
+                'type': m_type,
+                'uids': uids,
+            })
 
         # for follower in self:
         #     if follower.partner_id:
