@@ -21,7 +21,7 @@ class Users(models.Model):
     },
     '''
 
-    def web_notify_followers(self, title, subtitle='', message='', sticky=False, m_type='info'):
+    def notify_web(self, title, subtitle='', message='', sticky=False, m_type='info'):
         self.env['bus.bus'].sendone('polimex', {
             'm_type': 'notify',
             'title': title,
@@ -29,6 +29,14 @@ class Users(models.Model):
             'message': message,
             'sticky': sticky,
             'type': m_type,
+            'uids': self.mapped('id'),
+        })
+
+    def notify_browser(self, title, message):
+        self.env['bus.bus'].sendone('polimex', {
+            'm_type': 'browser',
+            'title': title,
+            'message': message,
             'uids': self.mapped('id'),
         })
 

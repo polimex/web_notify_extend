@@ -29,7 +29,7 @@ class Followers(models.Model):
     },
     '''
 
-    def notify_followers(self, title, subtitle='', message='', sticky=False, m_type='info'):
+    def notify_web_followers(self, title, subtitle='', message='', sticky=False, m_type='info'):
         for f in self:
             uids = f.mapped('partner_id.user_ids.id')
             self.env['bus.bus'].sendone('polimex', {
@@ -39,6 +39,16 @@ class Followers(models.Model):
                 'message': message,
                 'sticky': sticky,
                 'type': m_type,
+                'uids': uids,
+            })
+
+    def notify_browser_followers(self, title, message):
+        for f in self:
+            uids = f.mapped('partner_id.user_ids.id')
+            self.env['bus.bus'].sendone('polimex', {
+                'm_type': 'browser',
+                'title': title,
+                'message': message,
                 'uids': uids,
             })
 

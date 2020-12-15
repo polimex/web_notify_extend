@@ -33,11 +33,12 @@ WebClient.include({
 			return e.length > 1;
 		}), function (m) {
 			// console.log('Proccessing message: ',m[1])
+			var isMasterTab = self.call('bus_service', 'isMasterTab')
 			if ((action)&&(controller)&&(m[1].m_type == 'refresh')){
 				// console.log('Received event: ',m[1])
 				// console.log('Action: ',action)
 				// console.log('Controller: ',controller)
-				var isMasterTab = self.call('bus_service', 'isMasterTab')
+				// var isMasterTab = self.call('bus_service', 'isMasterTab')
 				// debugger
 				if (!isMasterTab || session.uid !== m[1].uid &&
 					 (controller.widget.modelName === m[1].model || controller.widget.isDashboard) &&
@@ -55,7 +56,11 @@ WebClient.include({
 				}
 			}
 			else if ((m[1].m_type == 'notify')&&(m[1].uids.includes(session.uid))){
-				self.displayNotification(m[1])
+				self.displayNotification(m[1]);
+			}
+			else if ((m[1].m_type == 'browser')&&(m[1].uids.includes(session.uid))&&isMasterTab){
+				self.call('bus_service', 'sendNotification', m[1].title,m[1].message);
+				self.call('bus_service', '_beep');
 			}
 		})
     },
