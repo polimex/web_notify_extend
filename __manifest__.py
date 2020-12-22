@@ -24,6 +24,7 @@
     # always loaded
     'data': [
         'views/assets.xml',
+        'views/user_notify_wiz.xml',
     ],
     # only loaded in demonstration mode
 

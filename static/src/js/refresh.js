@@ -59,8 +59,9 @@ WebClient.include({
 				self.displayNotification(m[1]);
 			}
 			else if ((m[1].m_type == 'browser')&&(m[1].uids.includes(session.uid))&&isMasterTab){
-				self.call('bus_service', 'sendNotification', m[1].title,m[1].message);
-				self.call('bus_service', '_beep');
+				self._sendNativeNotification( m[1].title, m[1].message, m[1].icon, m[1].requireInteraction);
+				// self.call('bus_service', 'sendNotification', m[1].title,m[1].message);
+				// self.call('bus_service', '_beep');
 			}
 		})
     },
@@ -68,6 +69,31 @@ WebClient.include({
 		if(controller && controller.widget) {
     		controller.widget.reload();
 		}
+    },
+	 _sendNativeNotification: function (title, content, icon, requireInteraction=false, callback) {
+		if (icon){
+			var icn = icon
+		} else {
+			var icn = "/web_notify_extend/static/src/img/icon-90x90.png"
+		}
+		icn = session['web.base.url']+icn
+		console.log('icon:',icn)
+        var notification = new Notification(title, {
+        	body: content,
+			icon: icn,
+			requireInteraction: requireInteraction,
+        });
+        notification.onclick = function () {
+            window.focus();
+            if (this.cancel) {
+                this.cancel();
+            } else if (this.close) {
+                this.close();
+            }
+            if (callback) {
+                callback();
+            }
+        };
     },
 });
 
