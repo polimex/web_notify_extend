@@ -11,35 +11,32 @@ require("bus.BusService");
 WebClient.include({
 	show_application: function() {
 		var res = this._super();
-		this.start_polling();
-		// this.call('bus_service', 'addChannel', 'ichecker_refresh');
-        this._super.apply(this, arguments);
-
+		// console.log('WebClient show_application')
+		this.register_channel();
+        return res;
     },
-	start_polling: function() {
+	register_channel: function() {
 		this.call("bus_service", "startPolling");
 		if (this.call("bus_service", "isMasterTab")) {
 			this.call("bus_service", "addChannel", MESSAGE_CHANNEL);
+			// console.log('Add channel: ',MESSAGE_CHANNEL)
 		}
 		this.call("bus_service", "on", "notification", this, this.polimex_msg);
-		// this.call("bus_service", "on", "ichecker_refresh", this, this.ichecker_refresh);
+		// console.log('Register for notification channel: ',this.polimex_msg)
     },
 	polimex_msg: function(messages) {
 		var self = this;
     	var action = this.action_manager.getCurrentAction();
     	var controller = this.action_manager.getCurrentController();
-		// console.log('Received messages: ',messages)
+		console.log('Received messages: ',messages)
 		_.each(_.filter(messages, function (e) {
-			return e.length > 1;
+            var channel = e[0];
+            // var message = e[1];
+            return MESSAGE_CHANNEL === channel
 		}), function (m) {
-			// console.log('Proccessing message: ',m[1])
+			console.log('Proccessing message: ',m[1])
 			var isMasterTab = self.call('bus_service', 'isMasterTab')
 			if ((action)&&(controller)&&(m[1].m_type == 'refresh')){
-				// console.log('Received event: ',m[1])
-				// console.log('Action: ',action)
-				// console.log('Controller: ',controller)
-				// var isMasterTab = self.call('bus_service', 'isMasterTab')
-				// debugger
 				if (!isMasterTab || session.uid !== m[1].uid &&
 					 (controller.widget.modelName === m[1].model || controller.widget.isDashboard) &&
 					controller.widget.mode === "readonly") {
@@ -61,7 +58,7 @@ WebClient.include({
 			else if ((m[1].m_type == 'browser')&&(m[1].uids.includes(session.uid))&&isMasterTab){
 				self._sendNativeNotification( m[1].title, m[1].message, m[1].icon, m[1].requireInteraction);
 				// self.call('bus_service', 'sendNotification', m[1].title,m[1].message);
-				// self.call('bus_service', '_beep');
+				self.call('bus_service', '_beep');
 			}
 		})
     },

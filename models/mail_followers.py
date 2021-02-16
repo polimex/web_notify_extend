@@ -1,5 +1,7 @@
 from odoo import models
 
+import logging
+_logger = logging.getLogger(__name__)
 
 class Followers(models.Model):
     """ mail_followers holds the data related to the follow mechanism inside
@@ -32,6 +34,7 @@ class Followers(models.Model):
     def notify_web_followers(self, title, subtitle='', message='', sticky=False, m_type='info'):
         for f in self:
             uids = f.mapped('partner_id.user_ids.id')
+            _logger.info('Notify uids: '+str(uids)+', message: '+ message)
             self.env['bus.bus'].sendone('polimex', {
                 'm_type': 'notify',
                 'title': title,
@@ -45,6 +48,7 @@ class Followers(models.Model):
     def notify_browser_followers(self, title, message):
         for f in self:
             uids = f.mapped('partner_id.user_ids.id')
+            _logger.info('Browser Notify uids: '+str(uids)+', message: '+ message)
             self.env['bus.bus'].sendone('polimex', {
                 'm_type': 'browser',
                 'title': title,
