@@ -54,6 +54,7 @@ class Users(models.Model):
 
 class UserNotifyWizard(models.TransientModel):
     _name = 'res.users.notify'
+    _description = 'Web Users notification Wizard'
 
     def _get_users_ids(self):
         return self.env['res.users'].browse(self._context.get('active_ids'))
