@@ -18,6 +18,12 @@ Usage
 -----
 new_records.refresh_views()
 
+res.users extended with:
+
+def notify_web(self, title, subtitle='', message='', sticky=False, m_type='info'):
+
+def notify_browser(self, title, message, icon='', require_interaction=False)
+
 
 
 Wish list
