@@ -4,7 +4,7 @@
 
         <record id="user_notify_wiz_view_form" model="ir.ui.view">
             <field name="name">user_notify_wiz_view_form</field>
-            <field name="model">res.users.notify</field>
+            <field name="model">users.notify.wiz</field>
             <field name="arch" type="xml">
                 <form string="user_notify_wiz_form">
                     <sheet>
@@ -25,14 +25,12 @@
             </field>
         </record>
 
-        <record id="user_notify_wiz_act_window" model="ir.actions.act_window">
+        <record id="launch_user_notify_wiz" model="ir.actions.act_window">
             <field name="name">Send message to Odoo users</field>
-            <field name="type">ir.actions.act_window</field>
-            <field name="res_model">res.users.notify</field>
+            <field name="res_model">users.notify.wiz</field>
             <field name="view_mode">form</field>
-            <field name="binding_model_id" ref="base.model_res_users"/>
             <field name="target">new</field>
-            <field name="groups_id" eval="[(4, ref('base.group_erp_manager'))]"/>
+            <field name="binding_model_id" ref="model_res_users"/>
         </record>
 
     </data>

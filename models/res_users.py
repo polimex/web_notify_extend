@@ -53,7 +53,7 @@ class Users(models.Model):
         #      'sticky': sticky, 'warning': warning})
 
 class UserNotifyWizard(models.TransientModel):
-    _name = 'res.users.notify'
+    _name = 'users.notify.wiz'
     _description = 'Web Users notification Wizard'
 
     def _get_users_ids(self):

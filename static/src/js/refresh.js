@@ -1,4 +1,4 @@
-odoo.define('ichecker.WebClient', function (require) {
+odoo.define('web_notify_extend.WebClient', function (require) {
 "use strict";
 const MESSAGE_CHANNEL = 'polimex'
 

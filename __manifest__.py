@@ -25,6 +25,7 @@
     'data': [
         'views/assets.xml',
         'views/user_notify_wiz.xml',
+        'security/ir.model.access.csv'
     ],
     # only loaded in demonstration mode
 
