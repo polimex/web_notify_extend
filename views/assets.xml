@@ -2,7 +2,7 @@
 <odoo>
     <data>
         
-        <template id="assets_backend" name="ichecker_refresh_addon" inherit_id="web.assets_backend">
+        <template id="assets_backend" name="refresh_addon" inherit_id="web.assets_backend">
            <xpath expr="//script[last()]" position="after">
                <script type="text/javascript" src="/web_notify_extend/static/src/js/refresh.js"></script>
            </xpath>
