@@ -17,16 +17,26 @@
     # for the full list
     'category': 'Administration',
     'version': '0.2',
-
     # any module necessary for this one to work correctly
     'depends': ['mail'],
 
     # always loaded
     'data': [
-        'views/assets.xml',
         'views/user_notify_wiz.xml',
         'security/ir.model.access.csv'
     ],
+    'assets': {
+        'web.assets_backend': [
+            'web_notify_extend/static/src/js/**/*',
+        ],
+        'web.tests_assets': [
+            'web_notify_extend/static/tests/**/*',
+        ],
+        'web.assets_qweb': [
+            'web_notify_extend/static/src/xml/**/*',
+        ],
+    },
+    'license': 'LGPL-3',
     # only loaded in demonstration mode
 
 }
