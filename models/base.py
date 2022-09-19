@@ -58,7 +58,7 @@ class Base(models.AbstractModel):
             if not ids and self._log_access:
                 create = record.exists() and record.create_date == record.write_date or False
             _logger.info('Sending refresh for {}'.format(model or self._name))
-            self.env['bus.bus'].sendone('polimex', {
+            self.env['bus.bus']._sendone(user and user.id or False if ids else self.env.user.id, 'polimex', {
                 'm_type': 'refresh',
                 'create': create,
                 'model': model or self._name,

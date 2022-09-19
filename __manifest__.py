@@ -23,18 +23,19 @@
     # always loaded
     'data': [
         'views/user_notify_wiz.xml',
+        'views/res_users_demo.xml',
         'security/ir.model.access.csv'
     ],
     'assets': {
         'web.assets_backend': [
             'web_notify_extend/static/src/js/**/*',
         ],
-        'web.tests_assets': [
-            'web_notify_extend/static/tests/**/*',
-        ],
-        'web.assets_qweb': [
-            'web_notify_extend/static/src/xml/**/*',
-        ],
+        # 'web.tests_assets': [
+        #     'web_notify_extend/static/tests/**/*',
+        # ],
+        # 'web.assets_qweb': [
+        #     'web_notify_extend/static/src/xml/**/*',
+        # ],
     },
     'license': 'LGPL-3',
     # only loaded in demonstration mode

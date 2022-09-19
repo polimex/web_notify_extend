@@ -1,56 +1,131 @@
-from odoo import fields, models, api, _
-from odoo.exceptions import UserError
+from odoo import fields, models, api, _, exceptions
+from odoo.addons.bus.models.bus import channel_with_db, json_dump
 
+DEFAULT_MESSAGE = "Default message"
 
+SUCCESS = "success"
+DANGER = "danger"
+WARNING = "warning"
+INFO = "info"
+DEFAULT = "default"
+BROWSER = "browser"
 class Users(models.Model):
     _inherit = 'res.users'
 
-    '''
-    **
-     * Displays a notification.
-     *
-     * @param {Object} options
-     * @param {string} options.title
-     * @param {string} [options.subtitle]
-     * @param {string} [options.message]
-     * @param {string} [options.type='warning'] 'info', 'success', 'warning', 'danger' or ''
-     * @param {boolean} [options.sticky=false]
-     * @param {string} [options.className]
-     */
-    displayNotification: function (options) {
-        return this.call('notification', 'notify', options);
-    },
-    '''
+    @api.depends("create_date")
+    def _compute_channel_names(self):
+        for record in self:
+            record.notify_success_channel_name = json_dump(
+                channel_with_db(self.env.cr.dbname, record.partner_id)
+            )
+            record.notify_danger_channel_name = json_dump(
+                channel_with_db(self.env.cr.dbname, record.partner_id)
+            )
+            record.notify_warning_channel_name = json_dump(
+                channel_with_db(self.env.cr.dbname, record.partner_id)
+            )
+            record.notify_info_channel_name = json_dump(
+                channel_with_db(self.env.cr.dbname, record.partner_id)
+            )
+            record.notify_default_channel_name = json_dump(
+                channel_with_db(self.env.cr.dbname, record.partner_id)
+            )
+            record.notify_browser_channel_name = json_dump(
+                channel_with_db(self.env.cr.dbname, record.partner_id)
+            )
 
-    def notify_web(self, title, subtitle='', message='', sticky=False, m_type='info'):
-        self.env['bus.bus'].sendone('polimex', {
-            'm_type': 'notify',
-            'title': title,
-            'subtitle': subtitle,
-            'message': message,
-            'sticky': sticky,
-            'type': m_type,
-            'uids': self.mapped('id'),
-        })
+    notify_success_channel_name = fields.Char(compute="_compute_channel_names")
+    notify_danger_channel_name = fields.Char(compute="_compute_channel_names")
+    notify_warning_channel_name = fields.Char(compute="_compute_channel_names")
+    notify_info_channel_name = fields.Char(compute="_compute_channel_names")
+    notify_default_channel_name = fields.Char(compute="_compute_channel_names")
+    notify_browser_channel_name = fields.Char(compute="_compute_channel_names")
 
-    def notify_browser(self, title, message, icon='', require_interaction=False):
-        self.env['bus.bus'].sendone('polimex', {
-            'm_type': 'browser',
-            'title': title,
-            'message': message,
-            'icon':icon,
-            'requireInteraction': require_interaction,
-            'uids': self.mapped('id'),
-        })
+    def _notify_channel(
+        self,
+        type_message=DEFAULT,
+        message=DEFAULT_MESSAGE,
+        title=None,
+        sticky=False,
+        target=None,
+    ):
+        # pylint: disable=protected-access
+        if not self.env.user._is_admin() and any(
+            user.id != self.env.uid for user in self
+        ):
+            raise exceptions.UserError(
+                _("Sending a notification to another user is forbidden.")
+            )
+        if not target:
+            target = self.env.user.partner_id
+        bus_message = {
+            "type": type_message,
+            "message": message,
+            "title": title,
+            "sticky": sticky,
+        }
 
-        # for follower in self:
-        #     if follower.partner_id:
-        #         msg['uids'] = follower.partner_id.user_ids
-        #     self.env['bus.bus'].sendone('polimex', msg)
-        # self.env['bus.bus'].sendone(
-        #     (self._cr.dbname, 'res.partner', follower.partner_id.id),
-        #     {'type': 'simple_notification', 'title': title, 'message': message,
-        #      'sticky': sticky, 'warning': warning})
+        notifications = [[partner, "web.notify", [bus_message]] for partner in target]
+        self.env["bus.bus"]._sendmany(notifications)
+
+    def notify_web(self, title=None, subtitle='', message='', sticky=False, m_type='info'):
+        # self.env['bus.bus']._sendone('polimex', {
+        #     'm_type': 'notify',
+        #     'title': title,
+        #     'subtitle': subtitle,
+        #     'message': message,
+        #     'sticky': sticky,
+        #     'type': m_type,
+        #     'uids': self.mapped('id'),
+        # })
+        # self._notify_channel(m_type, message, title, sticky, target)
+        self._notify_channel(m_type, message, title, sticky, None)
+
+    def notify_success(
+        self, message="Default message", title=None, sticky=False, target=None
+    ):
+        title = title or _("Success")
+        self._notify_channel(SUCCESS, message, title, sticky, target)
+
+    def notify_danger(
+        self, message="Default message", title=None, sticky=False, target=None
+    ):
+        title = title or _("Danger")
+        self._notify_channel(DANGER, message, title, sticky, target)
+
+    def notify_warning(
+        self, message="Default message", title=None, sticky=False, target=None
+    ):
+        title = title or _("Warning")
+        self._notify_channel(WARNING, message, title, sticky, target)
+
+    def notify_info(
+        self, message="Default message", title=None, sticky=False, target=None
+    ):
+        title = title or _("Information")
+        self._notify_channel(INFO, message, title, sticky, target)
+
+    def notify_default(
+        self, message="Default message", title=None, sticky=False, target=None
+    ):
+        title = title or _("Default")
+        self._notify_channel(DEFAULT, message, title, sticky, target)
+
+    def notify_browser(
+        self, title=None, message="Default message", icon=None, sticky=False, target=None
+    ):
+        title = title or _("Browser")
+        self._notify_channel('browser', message, title, sticky, target)
+
+    # def notify_browser(self, title, message, icon='', require_interaction=False):
+    #     self.env['bus.bus'].sendone('polimex', {
+    #         'm_type': 'browser',
+    #         'title': title,
+    #         'message': message,
+    #         'icon': icon,
+    #         'requireInteraction': require_interaction,
+    #         'uids': self.mapped('id'),
+    #     })
 
 class UserNotifyWizard(models.TransientModel):
     _name = 'users.notify.wiz'
@@ -74,7 +149,7 @@ class UserNotifyWizard(models.TransientModel):
 
     def send(self):
         if not self.user_ids:
-            UserError(_('No user to send message'))
+            exceptions.UserError(_('No user to send message'))
         for user_id in self.user_ids:
             if self.notify_type == 'notify_browser':
                 user_id.notify_browser(title=self.title, message=self.msg)
