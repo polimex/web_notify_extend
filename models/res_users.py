@@ -9,6 +9,8 @@ WARNING = "warning"
 INFO = "info"
 DEFAULT = "default"
 BROWSER = "browser"
+REFRESH = "refresh"
+
 class Users(models.Model):
     _inherit = 'res.users'
 

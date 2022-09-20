@@ -33,34 +33,27 @@ class Followers(models.Model):
 
     def notify_web_followers(self, title, subtitle='', message='', sticky=False, m_type='info'):
         for f in self:
-            uids = f.mapped('partner_id.user_ids.id')
-            _logger.info('Notify uids: '+str(uids)+', message: '+ message)
-            self.env['bus.bus'].sendone('polimex', {
-                'm_type': 'notify',
-                'title': title,
-                'subtitle': subtitle,
-                'message': message,
-                'sticky': sticky,
-                'type': m_type,
-                'uids': uids,
-            })
+            f.partner_id.user_ids.notify_web(title, subtitle, message, sticky, m_type)
+            # uids = f.mapped('partner_id.user_ids.id')
+            _logger.info('Notify uids: '+str(f.mapped('partner_id.user_ids.id'))+', message: '+ message)
+            # self.env['bus.bus'].sendone('polimex', {
+            #     'm_type': 'notify',
+            #     'title': title,
+            #     'subtitle': subtitle,
+            #     'message': message,
+            #     'sticky': sticky,
+            #     'type': m_type,
+            #     'uids': uids,
+            # })
 
     def notify_browser_followers(self, title, message):
         for f in self:
-            uids = f.mapped('partner_id.user_ids.id')
-            _logger.info('Browser Notify uids: '+str(uids)+', message: '+ message)
-            self.env['bus.bus'].sendone('polimex', {
-                'm_type': 'browser',
-                'title': title,
-                'message': message,
-                'uids': uids,
-            })
-
-        # for follower in self:
-        #     if follower.partner_id:
-        #         msg['uids'] = follower.partner_id.user_ids
-        #     self.env['bus.bus'].sendone('polimex', msg)
-            # self.env['bus.bus'].sendone(
-            #     (self._cr.dbname, 'res.partner', follower.partner_id.id),
-            #     {'type': 'simple_notification', 'title': title, 'message': message,
-            #      'sticky': sticky, 'warning': warning})
+            f.partnter_id.user_ids.notify_browser(title, message)
+            # uids = f.mapped('partner_id.user_ids.id')
+            _logger.info('Browser Notify uids: '+str(f.mapped('partner_id.user_ids.id'))+', message: '+ message)
+            # self.env['bus.bus'].sendone('polimex', {
+            #     'm_type': 'browser',
+            #     'title': title,
+            #     'message': message,
+            #     'uids': uids,
+            # })
