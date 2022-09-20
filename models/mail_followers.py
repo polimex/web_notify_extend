@@ -48,7 +48,7 @@ class Followers(models.Model):
 
     def notify_browser_followers(self, title, message):
         for f in self:
-            f.partnter_id.user_ids.notify_browser(title, message)
+            f.partner_id.user_ids.notify_browser(title, message)
             # uids = f.mapped('partner_id.user_ids.id')
             _logger.info('Browser Notify uids: '+str(f.mapped('partner_id.user_ids.id'))+', message: '+ message)
             # self.env['bus.bus'].sendone('polimex', {
