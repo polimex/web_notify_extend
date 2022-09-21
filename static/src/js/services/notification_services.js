@@ -35,8 +35,9 @@ odoo.define("web_notify.NotificationService", function (require) {
                     for (const {payload, type} of notifications) {
                         if (type === "web.notify") {
                             if (payload[0].type == 'browser'){
-                                legacyEnv.services.bus_service._sendNativeNotification(payload[0].title, payload[0].message);
-                                legacyEnv.services.bus_service._beep();
+                                legacyEnv.services.bus_service.sendNotification(payload[0]);
+                                // legacyEnv.services.bus_service._sendNativeNotification(payload[0].title, payload[0].message);
+                                // legacyEnv.services.bus_service._beep();
                             } else if (payload[0].type == 'refresh'){
 
                             } else

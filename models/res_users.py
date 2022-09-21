@@ -59,7 +59,10 @@ class Users(models.Model):
                 _("Sending a notification to another user is forbidden.")
             )
         if not target:
-            target = self.env.user.partner_id
+            if self:
+                target = self.mapped('partner_id')
+            else:
+                target = self.env.user.partner_id
         bus_message = {
             "type": type_message,
             "message": message,
