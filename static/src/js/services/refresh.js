@@ -1,94 +1,77 @@
-odoo.define('web_notify_extend.WebClient', function (require) {
+odoo.define('web_notify_extend.WebClient', (require) => {
     "use strict";
-    const MESSAGE_CHANNEL = 'polimex'
 
-    var session = require('web.session');
+    const MESSAGE_CHANNEL = 'polimex';
+    let session;
+    try {
+        session = require('web.session');
+    } catch (error) {
+        console.error(`Error loading 'web.session': ${error}`);
+        return;
+    }
 
-    var WebClient = require('web.web_client');
-// var core = require('web.core');
-    require("bus.BusService");
+    let WebClient;
+    try {
+        WebClient = require('web.WebClient');
+    } catch (error) {
+        console.error(`Error loading 'web.WebClient': ${error}`);
+        return;
+    }
+
+    let busService;
+    try {
+        busService = require("bus.BusService");
+    } catch (error) {
+        console.error(`Error loading 'bus.BusService': ${error}`);
+        return;
+    }
 
     WebClient.include({
         show_application: function () {
-            var res = this._super();
-            // console.log('WebClient show_application')
+            let res = this._super.apply(this, arguments);
             this.register_channel();
             return res;
         },
         register_channel: function () {
-            this.call("bus_service", "startPolling");
-            if (this.call("bus_service", "isMasterTab")) {
-                this.call("bus_service", "addChannel", MESSAGE_CHANNEL);
-                // console.log('Add channel: ',MESSAGE_CHANNEL)
+            busService.startPolling();
+            if (busService.isMasterTab()) {
+                busService.addChannel(MESSAGE_CHANNEL);
             }
-            this.call("bus_service", "on", "notification", this, this.polimex_msg);
-            // console.log('Register for notification channel: ',this.polimex_msg)
+            busService.on("notification", this.polimex_msg.bind(this));
         },
         polimex_msg: function (messages) {
-            var self = this;
-            var action = this.action_manager.getCurrentAction();
-            var controller = this.action_manager.getCurrentController();
-            console.log('Received messages: ', messages)
-            _.each(_.filter(messages, function (e) {
-                var channel = e[0];
-                // var message = e[1];
-                return MESSAGE_CHANNEL === channel
-            }), function (m) {
-                console.log('Proccessing message: ', m[1])
-                var isMasterTab = self.call('bus_service', 'isMasterTab')
-                if ((action) && (controller) && (m[1].m_type == 'refresh')) {
-                    if (!isMasterTab || session.uid !== m[1].uid &&
-                        (controller.widget.modelName === m[1].model || controller.widget.isDashboard) &&
-                        controller.widget.mode === "readonly") {
-                        // var recordID = action.env.currentID || null; // pyUtils handles null value, not undefined
-                        // if(controller.widget.isMultiRecord && (m[1].create || _.intersection(m[1].ids, action.env.ids) >= 1)) {
-                        // 	self._reload(m[1], controller);
-                        // } else if(!controller.widget.isMultiRecord && m[1].ids.includes(recordID)) {
-                        // 	self._reload(m[1], controller);
-                        // }
-                        self._reload(m[1], controller);
-                    } else if ((controller.widget) && (controller.widget.modelName == 'board.board')) {
-                        self._reload(m[1], controller);
+            let isMasterTab = busService.isMasterTab();
+            let action = this.action_manager.getCurrentAction();
+            let controller = this.action_manager.getCurrentController();
+            console.log('Received messages: ', messages);
+            for (let message of messages) {
+                if (message[0] === MESSAGE_CHANNEL) {
+                    console.log('Processing message: ', message[1]);
+                    if (action && controller && message[1].m_type === 'refresh') {
+                        if (!isMasterTab || session.uid !== message[1].uid &&
+                            (controller.widget.modelName === message[1].model ||
+                                controller.widget.isDashboard) &&
+                            controller.widget.mode === "readonly") {
+                            this._reload(message[1], controller);
+                        } else if (controller.widget &&
+                            controller.widget.modelName === 'board.board') {
+                            this._reload(message[1], controller);
+                        }
+                    } else if (message[1].m_type === 'notify' &&
+                        message[1].uids.includes(session.uid)) {
+                        this.displayNotification(message[1]);
+                    } else if (message[1].m_type === 'browser' &&
+                        message[1].uids.includes(session.uid) && isMasterTab) {
+                        this._sendNativeNotification(
+                            message[1].title,
+                            message[1].message,
+                            message[1].icon,
+                            message[1].requireInteraction
+                        );
+                        busService._beep();
                     }
-                } else if ((m[1].m_type == 'notify') && (m[1].uids.includes(session.uid))) {
-                    self.displayNotification(m[1]);
-                } else if ((m[1].m_type == 'browser') && (m[1].uids.includes(session.uid)) && isMasterTab) {
-                    self._sendNativeNotification(m[1].title, m[1].message, m[1].icon, m[1].requireInteraction);
-                    // self.call('bus_service', 'sendNotification', m[1].title,m[1].message);
-                    self.call('bus_service', '_beep');
                 }
-            })
-        },
-        _reload: function (message, controller) {
-            if (controller && controller.widget) {
-                controller.widget.reload();
             }
         },
-        _sendNativeNotification: function (title, content, icon, requireInteraction = false, callback) {
-            if (icon) {
-                var icn = icon
-            } else {
-                var icn = "/web_notify_extend/static/src/img/icon-90x90.png"
-            }
-            icn = session['web.base.url'] + icn
-            console.log('icon:', icn)
-            var notification = new Notification(title, {
-                body: content,
-                icon: icn,
-                requireInteraction: requireInteraction,
-            });
-            notification.onclick = function () {
-                window.focus();
-                if (this.cancel) {
-                    this.cancel();
-                } else if (this.close) {
-                    this.close();
-                }
-                if (callback) {
-                    callback();
-                }
-            };
-        },
-    });
-
-});
+    })
+})
